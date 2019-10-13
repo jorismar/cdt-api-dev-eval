@@ -8,7 +8,7 @@ CREATE TABLE portador (
 CREATE TABLE cartao (
   numero varchar(255) PRIMARY KEY NOT NULL,
   nome_portador varchar(255) NOT NULL,
-  validade varchar(255) NOT NULL,
+  validade date NOT NULL,
   cvc int NOT NULL,
   cpf varchar(255) NOT NULL,
   FOREIGN KEY(cpf) REFERENCES portador(cpf)

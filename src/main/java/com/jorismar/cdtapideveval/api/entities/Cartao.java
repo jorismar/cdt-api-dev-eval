@@ -2,6 +2,7 @@ package com.jorismar.cdtapideveval.api.entities;
 
 import java.io.Serializable;
 import java.util.List;
+import java.sql.Date;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -20,7 +21,7 @@ public class Cartao implements Serializable {
 
     private String numero;
     private String nome_portador;
-    private String validade;
+    private Date validade;
     private int cvc;
     private Portador portador;
     private List<Lancamento> lancamentos;
@@ -48,11 +49,11 @@ public class Cartao implements Serializable {
     }
 
     @Column(name = "validade", nullable = false)
-    public String getValidade() {
+    public Date getValidade() {
         return validade;
     }
 
-    public void setValidade(String validade) {
+    public void setValidade(Date validade) {
         this.validade = validade;
     }
 
