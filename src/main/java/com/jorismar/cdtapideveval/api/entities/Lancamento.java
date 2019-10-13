@@ -21,7 +21,7 @@ public class Lancamento implements Serializable {
     private Long codigo;
     private Cartao cartao;
     private String beneficiario;
-    private String valor;
+    private Double valor;
     private Date data_lancamento;
 
     public Lancamento() {
@@ -29,7 +29,6 @@ public class Lancamento implements Serializable {
     }
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     public Long getCodigo() {
         return codigo;
     }
@@ -57,11 +56,11 @@ public class Lancamento implements Serializable {
     }
 
     @Column(name = "valor", nullable = false)
-    public String getValor() {
+    public Double getValor() {
         return valor;
     }
 
-    public void setValor(String valor) {
+    public void setValor(Double valor) {
         this.valor = valor;
     }
 
