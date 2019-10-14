@@ -114,6 +114,7 @@ public class LancamentoRepositoryTest {
         lancamento.setBeneficiario("Cdt*Payment");
         lancamento.setDataLancamento(payDate);
         lancamento.setValor(4000.0);
+        lancamento.setValorCobranca(4000.0);
 
         this.lancamentoRepository.save(lancamento);
     }
