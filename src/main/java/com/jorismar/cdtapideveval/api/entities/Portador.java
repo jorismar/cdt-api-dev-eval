@@ -1,7 +1,7 @@
 package com.jorismar.cdtapideveval.api.entities;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,7 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "portador")
+@Table(name = "portador", schema = "public")
 public class Portador implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -17,7 +17,7 @@ public class Portador implements Serializable {
     private String cpf;
     private String nome;
     private String email;
-    private Date data_nascimento;
+    private LocalDate dataNascimento;
 
     public Portador() { };
 
@@ -48,17 +48,17 @@ public class Portador implements Serializable {
         this.email = email;
     }
 
-    @Column(name = "nascimento", nullable = false)
-    public Date getDataDeNascimento() {
-        return data_nascimento;
+    @Column(name = "data_nascimento", nullable = false)
+    public LocalDate getDataDeNascimento() {
+        return dataNascimento;
     }
 
-    public void setDataDeNascimento(Date dataDeNascimento) {
-        this.data_nascimento = dataDeNascimento;
+    public void setDataDeNascimento(LocalDate dataDeNascimento) {
+        this.dataNascimento = dataDeNascimento;
     }
 
     @Override
     public String toString() {
-        return "Portador [cpf=" + this.cpf + ", nome=" + this.nome + ", email=" + this.email + ", data_de_nascimento=" + this.data_nascimento + "]";
+        return "Portador [cpf=" + this.cpf + ", nome=" + this.nome + ", email=" + this.email + ", data_de_nascimento=" + this.dataNascimento + "]";
     }
 }

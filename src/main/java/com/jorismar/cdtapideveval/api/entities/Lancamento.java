@@ -1,7 +1,7 @@
 package com.jorismar.cdtapideveval.api.entities;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,7 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "lancamento")
+@Table(name = "lancamento", schema = "public")
 public class Lancamento implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -22,7 +22,8 @@ public class Lancamento implements Serializable {
     private Cartao cartao;
     private String beneficiario;
     private Double valor;
-    private Date data_lancamento;
+    private LocalDate dataLancamento;
+    private Double valorCobranca;
 
     public Lancamento() {
 
@@ -46,7 +47,7 @@ public class Lancamento implements Serializable {
         this.cartao = cartao;
     }
 
-    @Column(name = "beneficiario", nullable = false)
+    @Column(name = "estabelecimento", nullable = false)
     public String getBeneficiario() {
         return beneficiario;
     }
@@ -64,18 +65,28 @@ public class Lancamento implements Serializable {
         this.valor = valor;
     }
 
-    @Column(name = "data_compra", nullable = false)
-    public Date getDataLancamento() {
-        return data_lancamento;
+    @Column(name = "data_lancamento", nullable = false)
+    public LocalDate getDataLancamento() {
+        return dataLancamento;
     }
 
-    public void setDataLancamento(Date data) {
-        this.data_lancamento = data;
+    public void setDataLancamento(LocalDate data) {
+        this.dataLancamento = data;
     }
 
     @Override
     public String toString() {
-        return "Lancamento [codigo=" + this.codigo + ", beneficiario=" + beneficiario + ", valor=" + this.valor + ", data_compra=" + this.data_lancamento
+        return "Lancamento [codigo=" + this.codigo + ", beneficiario=" + beneficiario + ", valor=" + this.valor + ", data_compra=" + this.dataLancamento
         + ", cartao=" + this.cartao.getNumero() + "]";
     }
+
+    @Column(name = "valor_cobranca", nullable = false)
+    public Double getValorCobranca() {
+        return valorCobranca;
+    }
+
+    public void setValorCobranca(Double valorCobranca) {
+        this.valorCobranca = valorCobranca;
+    }
+
 }
