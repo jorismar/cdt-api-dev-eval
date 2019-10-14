@@ -1,6 +1,5 @@
 package com.jorismar.cdtapideveval.api.repositories;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
@@ -26,8 +25,7 @@ public class PortadorRepositoryTest {
     public void setup() {
         Portador portador = new Portador();
 
-        LocalDate localDate = LocalDate.of(2019, 12, 31);
-        Date birthDate = Date.valueOf(localDate);
+        LocalDate birthDate = LocalDate.of(2019, 12, 31);
 
         portador.setCpf(CPF);
         portador.setNome("Jorismar Barbosa");

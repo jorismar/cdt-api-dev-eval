@@ -1,6 +1,5 @@
 package com.jorismar.cdtapideveval.api.repositories;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -76,8 +75,7 @@ public class LancamentoRepositoryTest {
     public Portador createPortador() {
         Portador portador = new Portador();
 
-        LocalDate localDate = LocalDate.of(2019, 12, 31);
-        Date birthDate = Date.valueOf(localDate);
+        LocalDate birthDate = LocalDate.of(2019, 12, 31);
 
         portador.setCpf("12345678900");
         portador.setNome("Jorismar Barbosa");
@@ -92,14 +90,14 @@ public class LancamentoRepositoryTest {
     public Cartao createCartao(String numero, Portador portador) {
         Cartao cartao = new Cartao();
 
-        LocalDate localDate = LocalDate.of(2019, 9, 30);
-        Date expireDate = Date.valueOf(localDate);
+        LocalDate expireDate = LocalDate.of(2019, 9, 30);
 
         cartao.setNumero(numero);
         cartao.setNomeDoPortador("JORISMAR B MEIRA");
         cartao.setValidade(expireDate);
-        cartao.setCvc(418);
+        cartao.setCvc("418");
         cartao.setPortador(portador);
+        cartao.setSenha("123456");
 
         this.cartaoRepository.save(cartao);
 
@@ -109,8 +107,7 @@ public class LancamentoRepositoryTest {
     public void createLancamento(Long codigo, Cartao cartao) {
         Lancamento lancamento = new Lancamento();
 
-        LocalDate localDate = LocalDate.of(2019, 12, 05);
-        Date payDate = Date.valueOf(localDate);
+        LocalDate payDate = LocalDate.of(2019, 12, 05);
 
         lancamento.setCodigo(codigo);
         lancamento.setCartao(cartao);
