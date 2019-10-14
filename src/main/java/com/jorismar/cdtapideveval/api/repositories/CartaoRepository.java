@@ -12,10 +12,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jorismar.cdtapideveval.api.entities.Cartao;
+
 @Transactional(readOnly = true)
 
 @NamedQueries({ @NamedQuery(name = "CartaoRepository.findByPortadorCpf",
-        query = "SELECT cartao FROM cartao WHERE cartao.cpf = :portadorCpf") })
+        query = "SELECT cartao FROM cartao WHERE cartao.portador_cpf = :portadorCpf") })
 
 public interface CartaoRepository extends JpaRepository<Cartao, String> {
     Cartao findByNumero(String numero);
