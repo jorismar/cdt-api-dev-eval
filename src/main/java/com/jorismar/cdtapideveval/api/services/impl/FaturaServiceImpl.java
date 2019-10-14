@@ -27,13 +27,13 @@ public class FaturaServiceImpl implements FaturaService {
     @Override
     public List<Fatura> findByNumeroCartao(String numeroCartao) {
         logger.log(Level.FINE, "Generating list of Faturas by card number {}...", numeroCartao);
-        return this.repository.findByNumeroCartao(numeroCartao);
+        return this.repository.findByCartaoNumero(numeroCartao);
     }
 
     @Override
     public Page<Fatura> findByNumeroCartao(String numeroCartao, PageRequest pageRequest) {
         logger.log(Level.FINE, "Generating list of Faturas by card number {}...", numeroCartao);
-        return this.repository.findByNumeroCartao(numeroCartao, pageRequest);
+        return this.repository.findByCartaoNumero(numeroCartao, pageRequest);
     }
 
     @Override
