@@ -3,6 +3,7 @@ jdk:
   - openjdk8
 services:
   - postgresql
+  - rabbitmq
 before_script:
   - psql -c "CREATE DATABASE cdtapi;" -U postgres
   - psql -c "CREATE USER cdtapi WITH PASSWORD 'cdtapi';" -U postgres
