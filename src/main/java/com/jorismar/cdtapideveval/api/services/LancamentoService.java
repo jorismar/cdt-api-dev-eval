@@ -10,7 +10,7 @@ import com.jorismar.cdtapideveval.api.entities.Lancamento;
 
 public interface LancamentoService {
     Optional<Lancamento> findByCodigo(Long codigo);
-    List<Lancamento> findByCartao(String numero);
-    Page<Lancamento> findByCartao(String numero, PageRequest pageRequest);
+    List<Lancamento> findByCartao(String cartaoNumero);
+    Page<Lancamento> findByCartao(String cartaoNumero, PageRequest pageRequest);
     Lancamento persist(Lancamento lancamento);
 }
