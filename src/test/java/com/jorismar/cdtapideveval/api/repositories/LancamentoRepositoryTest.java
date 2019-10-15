@@ -56,7 +56,7 @@ public class LancamentoRepositoryTest {
     }
 
     @Test
-    public void testFindByCodigo() {
+    public void testFindByIdentificador() {
         Lancamento lancamento = this.lancamentoRepository.findByIdentificador(LANC_CODE);
         assertEquals(LANC_CODE, lancamento.getIdentificador());
     }
@@ -69,7 +69,7 @@ public class LancamentoRepositoryTest {
 
     @Test
     public void testFindByCartaoNumeroPageable() {
-        PageRequest request = PageRequest.of(0, 10, Sort.by("codigo").ascending());
+        PageRequest request = PageRequest.of(0, 10, Sort.by("identificador").ascending());
         Page<Lancamento> list = this.lancamentoRepository.findByCartaoNumero(CARD_NUM_1, request);
         assertEquals(2, list.getTotalElements());
     }
