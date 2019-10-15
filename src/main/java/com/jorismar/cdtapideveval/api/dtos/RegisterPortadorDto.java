@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.br.CPF;
@@ -15,6 +16,7 @@ public class RegisterPortadorDto {
     private String nome;
     private String email;
     private LocalDate dataNascimento;
+    private Double renda;
     private String senha;
     private String numeroCartao;
     private String nomeCartao;
@@ -22,7 +24,7 @@ public class RegisterPortadorDto {
     private LocalDate validadeCartao;
 
     public RegisterPortadorDto() {
-
+        // Empty
     }
 
     @NotEmpty(message = "The CPF cannot be empty.")
@@ -66,6 +68,16 @@ public class RegisterPortadorDto {
         this.dataNascimento = dataNascimento;
     }
 
+    @NotNull(message = "The monthly income cannot be negative.")
+    @Positive
+    public Double getRenda() {
+        return renda;
+    }
+
+    public void setRenda(Double renda) {
+        this.renda = renda;
+    }
+
     @NotEmpty(message = "The card password cannot be empty.")
     @Length(min = 6, max = 6, message = "The card password must be have 6 characters.")
     public String getSenha() {
@@ -74,11 +86,6 @@ public class RegisterPortadorDto {
 
     public void setSenha(String senha) {
         this.senha = senha;
-    }
-
-    @Override
-    public String toString() {
-        return "PortadorDto [cpf=" + this.cpf + ", nome=" + this.nome + ", email=" + this.email + ", data_de_nascimento=" + this.dataNascimento + "]";
     }
 
     public String getNumeroCartao() {
@@ -111,5 +118,10 @@ public class RegisterPortadorDto {
 
     public void setCvcCartao(String cvcCartao) {
         this.cvcCartao = cvcCartao;
+    }
+
+    @Override
+    public String toString() {
+        return "PortadorDto [cpf=" + this.cpf + ", nome=" + this.nome + ", email=" + this.email + ", data_de_nascimento=" + this.dataNascimento + "]";
     }
 }

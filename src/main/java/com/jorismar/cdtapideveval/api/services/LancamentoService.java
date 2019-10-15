@@ -9,7 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
 
 public interface LancamentoService {
-    Optional<Lancamento> findByCodigo(Long codigo);
+    Optional<Lancamento> findByIdentificador(String identificador);
     List<Lancamento> findByCartao(String cartaoNumero);
     Page<Lancamento> findByCartao(String cartaoNumero, PageRequest pageRequest);
     Lancamento persist(Lancamento lancamento);

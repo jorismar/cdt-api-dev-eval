@@ -17,6 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
+import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -30,7 +32,7 @@ public class LancamentoRepositoryTest {
     @Autowired
     private LancamentoRepository lancamentoRepository;
 
-    private static final Long LANC_CODE = 2908L;
+    private static final String LANC_CODE = "ccccccc";
     private static final String CARD_NUM_1 = "5988556523566001";
     private static final String CARD_NUM_2 = "5300223645785001";
 
@@ -41,8 +43,8 @@ public class LancamentoRepositoryTest {
         Cartao cartao1 = createCartao(CARD_NUM_1, portador);
         Cartao cartao2 = createCartao(CARD_NUM_2, portador);
 
-        createLancamento(1111L, cartao1);
-        createLancamento(2222L, cartao1);
+        createLancamento("aaaaaaa", cartao1);
+        createLancamento("bbbbbbb", cartao1);
         createLancamento(LANC_CODE, cartao2);
     }
 
@@ -55,8 +57,8 @@ public class LancamentoRepositoryTest {
 
     @Test
     public void testFindByCodigo() {
-        Lancamento lancamento = this.lancamentoRepository.findByCodigo(LANC_CODE);
-        assertEquals(LANC_CODE, lancamento.getCodigo());
+        Lancamento lancamento = this.lancamentoRepository.findByIdentificador(LANC_CODE);
+        assertEquals(LANC_CODE, lancamento.getIdentificador());
     }
 
     @Test
@@ -80,7 +82,8 @@ public class LancamentoRepositoryTest {
         portador.setCpf("12345678900");
         portador.setNome("Jorismar Barbosa");
         portador.setEmail("jorismar.barbosa@gmail.com");
-        portador.setDataDeNascimento(birthDate);
+        portador.setDataNascimento(birthDate);
+        portador.setRenda(4000.0);
 
         this.portadorRepository.save(portador);
 
@@ -93,28 +96,30 @@ public class LancamentoRepositoryTest {
         LocalDate expireDate = LocalDate.of(2019, 9, 30);
 
         cartao.setNumero(numero);
-        cartao.setNomeDoPortador("JORISMAR B MEIRA");
+        cartao.setNomePortador("JORISMAR B MEIRA");
         cartao.setValidade(expireDate);
         cartao.setCvc("418");
         cartao.setPortador(portador);
         cartao.setSenha("123456");
+        cartao.setLimite(5000.0);
+        cartao.setCondicao(CondicaoCartaoEnum.ATIVO);
 
         this.cartaoRepository.save(cartao);
 
         return cartao;
     }
 
-    public void createLancamento(Long codigo, Cartao cartao) {
+    public void createLancamento(String identificador, Cartao cartao) {
         Lancamento lancamento = new Lancamento();
 
         LocalDate payDate = LocalDate.of(2019, 12, 05);
 
-        lancamento.setCodigo(codigo);
+        lancamento.setIdentificador(identificador);
         lancamento.setCartao(cartao);
         lancamento.setBeneficiario("Cdt*Payment");
         lancamento.setDataLancamento(payDate);
-        lancamento.setValor(4000.0);
-        lancamento.setValorCobranca(4000.0);
+        lancamento.setValor(40.0);
+        lancamento.setCondicao(CondicaoLancamentoEnum.PENDENTE);
 
         this.lancamentoRepository.save(lancamento);
     }

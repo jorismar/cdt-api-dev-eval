@@ -18,12 +18,13 @@ import com.jorismar.cdtapideveval.api.services.LancamentoService;
 public class LancamentoServiceImpl implements LancamentoService {
     @Autowired
     private LancamentoRepository repository;
+    
     private Logger logger = Logger.getLogger(LancamentoServiceImpl.class.getName());
 
     @Override
-    public Optional<Lancamento> findByCodigo(Long codigo) {
-        logger.log(Level.FINE, "Finding a Lancamento by codigo {}...", codigo);
-        return Optional.ofNullable(this.repository.findByCodigo(codigo));
+    public Optional<Lancamento> findByIdentificador(String identificador) {
+        logger.log(Level.FINE, "Finding a Lancamento by identificador {}...", identificador);
+        return Optional.ofNullable(this.repository.findByIdentificador(identificador));
     }
 
     @Override
@@ -40,7 +41,7 @@ public class LancamentoServiceImpl implements LancamentoService {
 
     @Override
     public Lancamento persist(Lancamento lancamento) {
-        logger.log(Level.FINE, "Storing the Lancamento '{}' in database...", lancamento.getCodigo());
+        logger.log(Level.FINE, "Storing the Lancamento '{}' in database...", lancamento.getIdentificador());
         return this.repository.save(lancamento);
     }  
 }

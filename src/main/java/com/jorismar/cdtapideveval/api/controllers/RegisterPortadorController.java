@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/cdt/api/reg-client")
+@RequestMapping("/cdt/api/register")
 @CrossOrigin(origins = "*")
 public class RegisterPortadorController {
     private Logger logger = Logger.getLogger(RegisterPortadorController.class.getName());
@@ -92,7 +92,8 @@ public class RegisterPortadorController {
         portador.setCpf(dto.getCpf());
         portador.setEmail(dto.getEmail());
         portador.setNome(dto.getNome());
-        portador.setDataDeNascimento(dto.getDataNascimento());
+        portador.setDataNascimento(dto.getDataNascimento());
+        portador.setRenda(dto.getRenda());
 
         return portador;
     }
@@ -103,9 +104,10 @@ public class RegisterPortadorController {
         dto.setCpf(portador.getCpf());
         dto.setEmail(portador.getEmail());
         dto.setNome(portador.getNome());
-        dto.setDataNascimento(portador.getDataDeNascimento());
+        dto.setDataNascimento(portador.getDataNascimento());
+        dto.setRenda(portador.getRenda());
         dto.setNumeroCartao(cartao.getNumero());
-        dto.setNomeCartao(cartao.getNomeDoPortador());
+        dto.setNomeCartao(cartao.getNomePortador());
         dto.setValidadeCartao(cartao.getValidade());
         dto.setCvcCartao(cartao.getCvc());
         dto.setSenha(cartao.getSenha());

@@ -5,6 +5,8 @@ import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -12,42 +14,44 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
+
 @Entity
 @Table(name = "lancamento", schema = "public")
 public class Lancamento implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long codigo;
-    private Cartao cartao;
+    private String identificador;
+    private LocalDate dataLancamento;
     private String beneficiario;
     private Double valor;
-    private LocalDate dataLancamento;
-    private Double valorCobranca;
+    private CondicaoLancamentoEnum condicao;
+    private Cartao cartao;
 
     public Lancamento() {
 
     }
     
     @Id
-    public Long getCodigo() {
-        return codigo;
+    public String getIdentificador() {
+        return identificador;
     }
 
-    public void setCodigo(Long codigo) {
-        this.codigo = codigo;
+    public void setIdentificador(String identificador) {
+        this.identificador = identificador;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    public Cartao getCartao() {
-        return cartao;
+    @Column(name = "data_lancamento", nullable = false)
+    public LocalDate getDataLancamento() {
+        return dataLancamento;
     }
 
-    public void setCartao(Cartao cartao) {
-        this.cartao = cartao;
+    public void setDataLancamento(LocalDate data) {
+        this.dataLancamento = data;
     }
 
-    @Column(name = "estabelecimento", nullable = false)
+    @Column(name = "beneficiario", nullable = false)
     public String getBeneficiario() {
         return beneficiario;
     }
@@ -65,28 +69,28 @@ public class Lancamento implements Serializable {
         this.valor = valor;
     }
 
-    @Column(name = "data_lancamento", nullable = false)
-    public LocalDate getDataLancamento() {
-        return dataLancamento;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condicao", nullable = false)
+    public CondicaoLancamentoEnum getCondicao() {
+        return condicao;
     }
 
-    public void setDataLancamento(LocalDate data) {
-        this.dataLancamento = data;
+    public void setCondicao(CondicaoLancamentoEnum condicao) {
+        this.condicao = condicao;
+    }
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    public Cartao getCartao() {
+        return cartao;
+    }
+
+    public void setCartao(Cartao cartao) {
+        this.cartao = cartao;
     }
 
     @Override
     public String toString() {
-        return "Lancamento [codigo=" + this.codigo + ", beneficiario=" + beneficiario + ", valor=" + this.valor + ", data_compra=" + this.dataLancamento
+        return "Lancamento [identificador=" + this.identificador + ", beneficiario=" + beneficiario + ", valor=" + this.valor + ", data_compra=" + this.dataLancamento
         + ", cartao=" + this.cartao.getNumero() + "]";
     }
-
-    @Column(name = "valor_cobranca", nullable = false)
-    public Double getValorCobranca() {
-        return valorCobranca;
-    }
-
-    public void setValorCobranca(Double valorCobranca) {
-        this.valorCobranca = valorCobranca;
-    }
-
 }

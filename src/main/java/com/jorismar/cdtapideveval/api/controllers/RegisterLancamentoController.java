@@ -21,13 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jorismar.cdtapideveval.api.dtos.RegisterLancamentoDto;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
+import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
+import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 import com.jorismar.cdtapideveval.api.response.Response;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
 import com.jorismar.cdtapideveval.api.services.LancamentoService;
+import com.jorismar.cdtapideveval.api.utils.CartaoUtilities;
 import com.jorismar.cdtapideveval.api.utils.LancamentoUtilities;
 
 @RestController
-@RequestMapping("/cdt/api/reg-lanc")
+@RequestMapping("/cdt/api/payment")
 @CrossOrigin(origins = "*")
 public class RegisterLancamentoController {
     private Logger logger = Logger.getLogger(RegisterLancamentoController.class.getName());
@@ -49,94 +52,126 @@ public class RegisterLancamentoController {
         
         Response<RegisterLancamentoDto> response = new Response<>();
 
-        this.validate(dto, result);
+        Cartao cartao = null;
+        Lancamento lancamento = null;
+
+        Optional<Cartao> optCartao = this.getCartao(dto, result);
+        
+        if (optCartao.isPresent()) {
+            cartao = optCartao.get();
+            lancamento = getLancamento(dto, cartao, result);
+        }
 
         if (result.hasErrors()) {
-            logger.log(Level.FINE, "Invalid data found: {}", result.getAllErrors());
+            logger.log(Level.FINE, "Refused: {}", result.getAllErrors());
             result.getAllErrors().forEach(error -> response.getErrors().add(error.getDefaultMessage()));
             return ResponseEntity.badRequest().body(response);
         }
 
-        Cartao cartao = this.cartaoService.findByNumero(dto.getCartaoNumero()).get();
-        Lancamento lancamento = getLancamento(dto, cartao);
-
         // Store new lancamento into de DB
         this.lancamentoService.persist(lancamento);
 
-        response.setData(this.getRegisterLancamentoDto(lancamento, cartao));
+        response.setData(this.getRegisterLancamentoDto(lancamento));
 
         return ResponseEntity.ok(response);
     }
 
-    public void validate(RegisterLancamentoDto dto, BindingResult result) {
-        final Optional<Cartao> opt = this.cartaoService.findByNumero(dto.getCartaoNumero());
-
-        // Valid Payee to refund
-        if (dto.getCodigo() != null) {
-            Optional<Lancamento> optLanc = this.lancamentoService.findByCodigo(dto.getCodigo());
-            if(optLanc.isPresent() && !optLanc.get().getBeneficiario().equals(dto.getBeneficiario())) {
-                result.addError(new ObjectError("Lancamento", "Payee is invalid"));
-                return;
-            }
-        }
+    public Optional<Cartao> getCartao(RegisterLancamentoDto dto, BindingResult result) {
+        Optional<Cartao> opt = this.cartaoService.findByNumero(dto.getCartaoNumero());
 
         // Valid credit card
-        if(opt.isPresent()) {
-            Cartao cartao = opt.get();
-
-            boolean nomeIsValid = cartao.getNomeDoPortador().equals(dto.getPortadorNome());
-            boolean cvcIsValid = cartao.getCvc().equals(dto.getCvc());
-            boolean vencIsValid = cartao.getValidade().compareTo(dto.getVencimento()) == 0;
-            boolean cpfIsValid = cartao.getPortador().getCpf().equals(dto.getPortadorCpf());
-
-            if (nomeIsValid && cvcIsValid && vencIsValid && cpfIsValid) {
-                return;
-            }
+        if(!opt.isPresent()) {
+            result.addError(new ObjectError("Lancamento", "Invalid card number"));
+            return opt;
         }
 
-        result.addError(new ObjectError("Lancamento", "Credit card is invalid"));
+        Cartao cartao = opt.get();
+
+        boolean nomeIsValid = cartao.getNomePortador().equals(dto.getPortadorNome());
+        boolean cvcIsValid = cartao.getCvc().equals(dto.getCvc());
+        boolean vencIsValid = cartao.getValidade().compareTo(dto.getValidade()) == 0;
+        boolean cpfIsValid = cartao.getPortador().getCpf().equals(dto.getPortadorCpf());
+        boolean isActive = cartao.getCondicao() == CondicaoCartaoEnum.ATIVO;
+        boolean hasLimite = CartaoUtilities.getLimitAvailable(cartao) >= dto.getValor();
+        boolean isExpired = vencIsValid && LocalDate.now().isAfter(cartao.getValidade());
+
+        if (nomeIsValid && cvcIsValid && vencIsValid && cpfIsValid) {
+            if (isExpired) {
+                result.addError(new ObjectError("Lancamento", "Credit card is expired"));
+            }
+            if (!isActive) {
+                result.addError(new ObjectError("Lancamento", "Credit card is not active"));
+            }
+            if (!hasLimite) {
+                result.addError(new ObjectError("Lancamento", "Insufficient funds"));
+            }
+        } else {
+            result.addError(new ObjectError("Lancamento", "Invalid credit card information"));
+        }
+
+        return opt;
     }
 
-    public Lancamento getLancamento(RegisterLancamentoDto dto, Cartao cartao) {
+    public Lancamento getLancamento(RegisterLancamentoDto dto, Cartao cartao, BindingResult result) {
         Lancamento lancamento = null;
-        Double valor = dto.getValor();
         
-        Long codigo = dto.getCodigo();
+        String identificador = dto.getIdentificador();
         
         // Refund a Lancamento if receive a valid codigo
-        if (codigo != null) {
-            final Optional<Lancamento> optLancamento = this.lancamentoService.findByCodigo(codigo);
+        if (identificador != null && !identificador.isEmpty()) {
+            final Optional<Lancamento> optLancamento = this.lancamentoService.findByIdentificador(identificador);
             
             if (optLancamento.isPresent()) {
                 lancamento = optLancamento.get();
-                lancamento.setValorCobranca(0.0);
+
+                // Valid payee
+                if (lancamento.getBeneficiario().equals(dto.getBeneficiario())) {
+                    // Valid condition
+                    if (lancamento.getCondicao() == CondicaoLancamentoEnum.PENDENTE) {
+                        // Valid value
+                        if (lancamento.getValor().equals(dto.getValor())) {
+                            lancamento.setCondicao(CondicaoLancamentoEnum.REEMBOLSADO);
+                            return lancamento;
+                        }
+                    }
+                }
+                
+                result.addError(new ObjectError("Lancamento", "Invalid information to refund operation"));
+                return lancamento;
             }
-        } else {
-            do {
-                codigo = LancamentoUtilities.generateCode();
-            } while(this.lancamentoService.findByCodigo(codigo).isPresent());
-            lancamento = new Lancamento();
-    
-            lancamento.setDataLancamento(LocalDate.now());
-            lancamento.setCartao(cartao);
-            lancamento.setBeneficiario(dto.getBeneficiario());
-            lancamento.setValor(valor);
-            lancamento.setValorCobranca(valor);
-            lancamento.setCodigo(codigo);
         }
+        
+        lancamento = new Lancamento();
+
+        // Generates a new ID while it exists
+        do {
+            try {
+                identificador = LancamentoUtilities.generateID(dto);
+            } catch (NoSuchAlgorithmException e) {}
+        } while(identificador == null || identificador.isEmpty() || this.lancamentoService.findByIdentificador(identificador).isPresent());
+        
+        lancamento.setIdentificador(identificador);
+        lancamento.setDataLancamento(LocalDate.now());
+        lancamento.setCartao(cartao);
+        lancamento.setBeneficiario(dto.getBeneficiario());
+        lancamento.setValor(dto.getValor());
+        lancamento.setCondicao(CondicaoLancamentoEnum.PENDENTE);
 
         return lancamento;
     }
 
-    public RegisterLancamentoDto getRegisterLancamentoDto(Lancamento lancamento, Cartao cartao) {
+    public RegisterLancamentoDto getRegisterLancamentoDto(Lancamento lancamento) {
         RegisterLancamentoDto dto = new RegisterLancamentoDto();
 
         dto.setBeneficiario(lancamento.getBeneficiario());
         dto.setCartaoNumero(lancamento.getCartao().getNumero());
-        dto.setCodigo(lancamento.getCodigo());
+        dto.setIdentificador(lancamento.getIdentificador());
         dto.setDataLancamento(lancamento.getDataLancamento());
-        dto.setPortadorCpf(cartao.getPortador().getCpf());
-        dto.setValor(lancamento.getValorCobranca() == 0 ? lancamento.getValor() * -1 : lancamento.getValor());
+        dto.setPortadorCpf(lancamento.getCartao().getPortador().getCpf());
+        dto.setValor(lancamento.getValor());
+        dto.setPortadorNome(lancamento.getCartao().getNomePortador());
+        dto.setValidade(lancamento.getCartao().getValidade());
+        dto.setCvc(lancamento.getCartao().getCvc());
 
         return dto;
     }

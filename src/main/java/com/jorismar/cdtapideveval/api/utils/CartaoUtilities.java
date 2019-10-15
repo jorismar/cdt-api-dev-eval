@@ -1,12 +1,17 @@
 package com.jorismar.cdtapideveval.api.utils;
 
+import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 import java.time.LocalDate;
 
 import com.jorismar.cdtapideveval.api.entities.Cartao;
+import com.jorismar.cdtapideveval.api.entities.Lancamento;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
+import com.jorismar.cdtapideveval.api.enums.CondicaoFaturaEnum;
+import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 
 public class CartaoUtilities {
     public static Cartao generate(Portador portador, String senha) {
@@ -14,17 +19,25 @@ public class CartaoUtilities {
         String ownerName = generateOwnerNameAlias(portador.getNome());
         LocalDate expirationDate = generateExpirationDate();
         String cvc = generateCVC();
+        Double limite = calculateLimite(portador.getRenda());
 
         Cartao cartao = new Cartao();
 
         cartao.setNumero(number);
-        cartao.setNomeDoPortador(ownerName);
+        cartao.setNomePortador(ownerName);
         cartao.setValidade(expirationDate);
         cartao.setCvc(cvc);
-        cartao.setPortador(portador);
         cartao.setSenha(senha);
-
+        cartao.setLimite(limite);
+        // TODO: Change to blocked and provide a way to unblock
+        cartao.setCondicao(CondicaoCartaoEnum.ATIVO);
+        cartao.setPortador(portador);
+        
         return cartao;
+    }
+
+    public static Double calculateLimite(Double renda) {
+        return renda / 2.0;
     }
 
     private static String generateNumber() {
@@ -76,5 +89,18 @@ public class CartaoUtilities {
 
     public static boolean validPassword(String password) {
         return password.length() == 6 || password.matches("^[0-9]+$");
+    }
+
+    // TODO: Replace it by DB Query
+    public static Double getLimitAvailable(Cartao cartao) {
+        Double total = 0.0;
+
+        for (Lancamento lanc : cartao.getLancamentos()) {
+            if (lanc.getCondicao() == CondicaoLancamentoEnum.PENDENTE) {
+                total += lanc.getValor();
+            }
+        }
+
+        return cartao.getLimite() - total;
     }
 }

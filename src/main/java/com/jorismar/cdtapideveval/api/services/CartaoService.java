@@ -13,4 +13,5 @@ public interface CartaoService {
     List<Cartao> findByCpf(String cpf);
     Page<Cartao> findByCpf(String cpf, PageRequest pageRequest);
     Cartao persist(Cartao cartao);
+    List<Cartao> findAll();
 }

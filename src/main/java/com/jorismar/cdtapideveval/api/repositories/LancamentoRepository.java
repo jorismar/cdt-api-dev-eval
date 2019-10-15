@@ -18,8 +18,8 @@ import com.jorismar.cdtapideveval.api.entities.Lancamento;
 @NamedQueries({ @NamedQuery(name = "LancamentoRepository.findByCartaoNumero",
         query = "SELECT lancamento FROM lancamento WHERE lancamento.cartao_numero = :cartaoNumero") })
 
-public interface LancamentoRepository extends JpaRepository<Lancamento, Long> {
-    Lancamento findByCodigo(Long codigo);
+public interface LancamentoRepository extends JpaRepository<Lancamento, String> {
+    Lancamento findByIdentificador(String identificador);
     List<Lancamento> findByCartaoNumero(@Param("cartaoNumero") String cartaoNumero);
     Page<Lancamento> findByCartaoNumero(@Param("cartaoNumero") String cartaoNumero, Pageable pageable);
 }

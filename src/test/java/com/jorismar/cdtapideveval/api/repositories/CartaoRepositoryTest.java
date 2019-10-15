@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -70,7 +71,8 @@ public class CartaoRepositoryTest {
         portador.setCpf("12345678900");
         portador.setNome("Jorismar Barbosa");
         portador.setEmail("jorismar.barbosa@gmail.com");
-        portador.setDataDeNascimento(birthDate);
+        portador.setDataNascimento(birthDate);
+        portador.setRenda(4000.0);
 
         this.portadorRepository.save(portador);
 
@@ -83,11 +85,13 @@ public class CartaoRepositoryTest {
         LocalDate expirationDate = LocalDate.of(2019, 9, 30);
 
         cartao.setNumero(numero);
-        cartao.setNomeDoPortador("JORISMAR B MEIRA");
+        cartao.setNomePortador("JORISMAR B MEIRA");
         cartao.setValidade(expirationDate);
         cartao.setCvc("418");
         cartao.setPortador(portador);
         cartao.setSenha("123456");
+        cartao.setCondicao(CondicaoCartaoEnum.ATIVO);
+        cartao.setLimite(5000.0);
 
         this.cartaoRepository.save(cartao);
     }

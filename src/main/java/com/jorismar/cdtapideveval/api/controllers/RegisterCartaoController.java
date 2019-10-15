@@ -26,9 +26,11 @@ import com.jorismar.cdtapideveval.api.services.PortadorService;
 import com.jorismar.cdtapideveval.api.utils.CartaoUtilities;
 
 @RestController
-@RequestMapping("/cdt/api/reg-card")
+@RequestMapping("/cdt/api/request/card")
 @CrossOrigin(origins = "*")
 public class RegisterCartaoController {
+    private final Double MINIMUM_INCOME = 800.0;
+
     private Logger logger = Logger.getLogger(RegisterPortadorController.class.getName());
 
     @Autowired
@@ -53,6 +55,10 @@ public class RegisterCartaoController {
         // Validating CPF
         if(!optPortador.isPresent()) {
             result.addError(new ObjectError("Cartao", "CPF not found."));
+        }
+        // Validating minimal monthly income
+        else if (optPortador.get().getRenda() < MINIMUM_INCOME) {
+            result.addError(new ObjectError("Cartao", "Request refused. Your income is not enough."));
         }
 
         // Validating card password
@@ -87,9 +93,10 @@ public class RegisterCartaoController {
         dto.setPortadorCpf(cartao.getPortador().getCpf());
         dto.setSenha(cartao.getSenha());
         dto.setNumero(cartao.getNumero());
-        dto.setNomePortador(cartao.getNomeDoPortador());
+        dto.setNomePortador(cartao.getNomePortador());
         dto.setValidade(cartao.getValidade());
         dto.setCvc(cartao.getCvc());
+        dto.setLimite(cartao.getLimite());
 
         return dto;
     }
