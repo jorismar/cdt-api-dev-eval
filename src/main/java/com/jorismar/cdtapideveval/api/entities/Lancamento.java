@@ -1,20 +1,14 @@
 package com.jorismar.cdtapideveval.api.entities;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 
 @Entity
 @Table(name = "lancamento", schema = "public")
@@ -23,10 +17,9 @@ public class Lancamento implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String identificador;
-    private LocalDate dataLancamento;
+    private LocalDateTime dataLancamento;
     private String beneficiario;
     private Double valor;
-    private CondicaoLancamentoEnum condicao;
     private Cartao cartao;
 
     public Lancamento() {
@@ -43,11 +36,11 @@ public class Lancamento implements Serializable {
     }
 
     @Column(name = "data_lancamento", nullable = false)
-    public LocalDate getDataLancamento() {
+    public LocalDateTime getDataLancamento() {
         return dataLancamento;
     }
 
-    public void setDataLancamento(LocalDate data) {
+    public void setDataLancamento(LocalDateTime data) {
         this.dataLancamento = data;
     }
 
@@ -67,16 +60,6 @@ public class Lancamento implements Serializable {
 
     public void setValor(Double valor) {
         this.valor = valor;
-    }
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "condicao", nullable = false)
-    public CondicaoLancamentoEnum getCondicao() {
-        return condicao;
-    }
-
-    public void setCondicao(CondicaoLancamentoEnum condicao) {
-        this.condicao = condicao;
     }
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -1,6 +1,7 @@
 package com.jorismar.cdtapideveval.api.repositories;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,6 @@ import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
 import com.jorismar.cdtapideveval.api.entities.Portador;
 import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
-import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -112,14 +112,13 @@ public class LancamentoRepositoryTest {
     public void createLancamento(String identificador, Cartao cartao) {
         Lancamento lancamento = new Lancamento();
 
-        LocalDate payDate = LocalDate.of(2019, 12, 05);
+        LocalDateTime payDate = LocalDateTime.of(2019, 12, 05, 0, 0);
 
         lancamento.setIdentificador(identificador);
         lancamento.setCartao(cartao);
         lancamento.setBeneficiario("Cdt*Payment");
         lancamento.setDataLancamento(payDate);
         lancamento.setValor(40.0);
-        lancamento.setCondicao(CondicaoLancamentoEnum.PENDENTE);
 
         this.lancamentoRepository.save(lancamento);
     }

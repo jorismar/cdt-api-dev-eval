@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import com.jorismar.cdtapideveval.api.entities.Fatura;
@@ -15,7 +14,7 @@ public class FaturaUtilities {
         MessageDigest digest = MessageDigest.getInstance("MD5");
         
         // Information to generate the MD5 Hash (Current Date and Time, Card number used in thes payment and the value)
-        String info = LocalDateTime.now().toString() + numeroCartao + numeroCartao + vencimento.toString();
+        String info = numeroCartao + valor + vencimento.toString();
 
         digest.update(info.getBytes(), 0, info.length());
 
@@ -28,7 +27,7 @@ public class FaturaUtilities {
 
         // Checks if the invoice was paid after the due date.
         if (fatura.getCondicao() == CondicaoFaturaEnum.FATURADA) {
-            daysLate = ChronoUnit.DAYS.between(fatura.getVencimento(), fatura.getPagamentoData());
+            daysLate = ChronoUnit.DAYS.between(fatura.getVencimento(), fatura.getDataPagamento());
         // Checks if the invoice has not been paid yet
         } else if (fatura.getCondicao() == CondicaoFaturaEnum.PENDENTE) {
             daysLate = ChronoUnit.DAYS.between(fatura.getVencimento(), LocalDate.now());

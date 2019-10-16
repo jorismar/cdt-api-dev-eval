@@ -3,16 +3,15 @@ package com.jorismar.cdtapideveval.api.scheduled;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Fatura;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
 import com.jorismar.cdtapideveval.api.enums.CondicaoFaturaEnum;
-import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
 import com.jorismar.cdtapideveval.api.services.FaturaService;
 import com.jorismar.cdtapideveval.api.services.LancamentoService;
+import com.jorismar.cdtapideveval.api.services.ReembolsoService;
 import com.jorismar.cdtapideveval.api.utils.FaturaUtilities;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +31,24 @@ public class FaturaGenerator {
     @Autowired
     private LancamentoService lancamentoService;
 
+    @Autowired
+    private ReembolsoService reembolsoService;
+
     public FaturaGenerator() {
         // Empty
     }
 
     @Scheduled(cron = "0 0 0 1 * ?")
     public void execute() {
-        LocalDate vencimento = LocalDate.now().plusDays(7).plusMonths(1);
+        LocalDate currentDate = LocalDate.now();
+        LocalDate referenceDate = LocalDate.of(currentDate.getYear(), currentDate.getMonth(), 1);
+        LocalDate beginDate = referenceDate.minusMonths(1);
+        LocalDate endDate = referenceDate.minusDays(1);
+
+        LocalDateTime beginPeriod = LocalDateTime.of(beginDate.getYear(), beginDate.getMonth(), beginDate.getDayOfMonth(), 0, 0, 0, 0);
+        LocalDateTime endPeriod = LocalDateTime.of(endDate.getYear(), endDate.getMonth(), endDate.getDayOfMonth(), 23, 59, 59, 999999999);
+        
+        LocalDate vencimento = currentDate.plusDays(7).plusMonths(1);
 
         for (Cartao cartao : this.cartaoService.findAll()) {
             Double total = 0.0;
@@ -46,25 +56,22 @@ public class FaturaGenerator {
 
             // Calculates values of the overdue invoices
             for (Fatura fatura : this.faturaService.findByNumeroCartao(cartao.getNumero())) {
-                if (fatura.getCondicao() != CondicaoFaturaEnum.CANCELADA) {
+                if (fatura.getCondicao() == CondicaoFaturaEnum.PENDENTE) {
                     // Calculates the penalty for days late
                     total += FaturaUtilities.calculatePenaltyValue(fatura);
 
                     // Adds the amount of the overdue invoice
-                    if (fatura.getCondicao() == CondicaoFaturaEnum.PENDENTE) {
-                        total += fatura.getValor();
-                        fatura.setCondicao(CondicaoFaturaEnum.ATRASADA);
-                        this.faturaService.persist(fatura);
-                    }
+                    total += fatura.getValor();
                 }
             }
             
             // Sum all debts
             for (Lancamento lancamento : this.lancamentoService.findByCartao(cartao.getNumero())) {
-                if (lancamento.getCondicao() == CondicaoLancamentoEnum.PENDENTE) {
-                    total += lancamento.getValor();
-                    lancamento.setCondicao(CondicaoLancamentoEnum.FATURADO);
-                    this.lancamentoService.persist(lancamento);
+                LocalDateTime lancDate = lancamento.getDataLancamento();
+                if ((lancDate.isEqual(beginPeriod) || lancDate.isAfter(beginPeriod)) && lancDate.isBefore(endPeriod)) {
+                    if (!this.reembolsoService.findByLancamentoIdentificador(lancamento.getIdentificador()).isPresent()) {
+                        total += lancamento.getValor();
+                    }
                 }
             }
             

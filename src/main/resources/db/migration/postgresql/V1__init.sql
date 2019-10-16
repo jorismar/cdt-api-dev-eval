@@ -20,20 +20,26 @@ CREATE TABLE cartao (
 
 CREATE TABLE lancamento (
   identificador varchar(255) PRIMARY KEY NOT NULL,
-  data_lancamento date NOT NULL,
+  cartao_numero varchar(255) NOT NULL,
   beneficiario varchar(255) NOT NULL,
   valor decimal NOT NULL,
-  condicao varchar(255) NOT NULL,
-  cartao_numero varchar(255) NOT NULL,
+  data_lancamento date NOT NULL,
   FOREIGN KEY(cartao_numero) REFERENCES cartao(numero)
+);
+
+CREATE TABLE reembolso (
+  identificador varchar(255) PRIMARY KEY NOT NULL,
+  lancamento_identificador varchar(255) NOT NULL,
+  data_reembolso date NOT NULL,
+  FOREIGN KEY(lancamento_identificador) REFERENCES lancamento(identificador)
 );
 
 CREATE TABLE fatura (
   codigo_barras varchar(255) PRIMARY KEY NOT NULL,
-  vencimento date NOT NULL,
-  valor decimal NOT NULL,
-  condicao varchar(255) NOT NULL,
-  pagamento_data date,
   cartao_numero varchar(255) NOT NULL,
+  valor decimal NOT NULL,
+  vencimento date NOT NULL,
+  condicao varchar(255) NOT NULL,
+  data_pagamento date,
   FOREIGN KEY(cartao_numero) REFERENCES cartao(numero)
 );

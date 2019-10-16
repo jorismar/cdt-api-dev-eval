@@ -5,13 +5,14 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.jorismar.cdtapideveval.api.entities.Cartao;
+import com.jorismar.cdtapideveval.api.entities.Fatura;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
 import com.jorismar.cdtapideveval.api.entities.Portador;
 import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
 import com.jorismar.cdtapideveval.api.enums.CondicaoFaturaEnum;
-import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 
 public class CartaoUtilities {
     public static Cartao generate(Portador portador, String senha) {
@@ -95,8 +96,23 @@ public class CartaoUtilities {
     public static Double getLimitAvailable(Cartao cartao) {
         Double total = 0.0;
 
+        Fatura mostOldFatura = null;
+
+        for (Fatura fatura : cartao.getFaturas()) {
+            if (fatura.getCondicao() == CondicaoFaturaEnum.PENDENTE) {
+                if (mostOldFatura == null || fatura.getVencimento().isBefore(mostOldFatura.getVencimento())) {
+                    mostOldFatura = fatura;
+                }
+            }
+        }
+
+        LocalDate oldestDate = mostOldFatura != null ? mostOldFatura.getVencimento().minusMonths(1) : LocalDate.now();
+        LocalDateTime currentDate = LocalDateTime.now();
+        LocalDateTime beginDate = LocalDateTime.of(oldestDate.getYear(), oldestDate.getMonth(), 1, 0, 0, 0, 0);
+
         for (Lancamento lanc : cartao.getLancamentos()) {
-            if (lanc.getCondicao() == CondicaoLancamentoEnum.PENDENTE) {
+            LocalDateTime date = lanc.getDataLancamento();
+            if ((date.isEqual(beginDate) || date.isAfter(beginDate)) && date.isBefore(currentDate)) {
                 total += lanc.getValor();
             }
         }

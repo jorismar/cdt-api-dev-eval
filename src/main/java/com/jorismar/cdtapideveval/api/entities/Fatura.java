@@ -24,7 +24,7 @@ public class Fatura implements Serializable {
     private LocalDate vencimento;
     private Double valor;
     private CondicaoFaturaEnum condicao;
-    private LocalDate pagamentoData;
+    private LocalDate dataPagamento;
     private Cartao cartao;
 
     public Fatura() {
@@ -68,13 +68,13 @@ public class Fatura implements Serializable {
         this.condicao = condicao;
     }
 
-    @Column(name = "pagamento_data", nullable = true)
-    public LocalDate getPagamentoData() {
-        return pagamentoData;
+    @Column(name = "data_pagamento", nullable = true)
+    public LocalDate getDataPagamento() {
+        return dataPagamento;
     }
 
-    public void setPagamentoData(LocalDate pagamentoData) {
-        this.pagamentoData = pagamentoData;
+    public void setDataPagamento(LocalDate pagamentoData) {
+        this.dataPagamento = pagamentoData;
     }
 
     @ManyToOne(fetch = FetchType.EAGER)

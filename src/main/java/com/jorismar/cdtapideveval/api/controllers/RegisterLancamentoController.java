@@ -2,6 +2,7 @@ package com.jorismar.cdtapideveval.api.controllers;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.Optional;
@@ -22,11 +23,12 @@ import com.jorismar.cdtapideveval.api.components.RabbitMQSender;
 import com.jorismar.cdtapideveval.api.dtos.RegisterLancamentoDto;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
+import com.jorismar.cdtapideveval.api.entities.Reembolso;
 import com.jorismar.cdtapideveval.api.enums.CondicaoCartaoEnum;
-import com.jorismar.cdtapideveval.api.enums.CondicaoLancamentoEnum;
 import com.jorismar.cdtapideveval.api.response.Response;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
 import com.jorismar.cdtapideveval.api.services.LancamentoService;
+import com.jorismar.cdtapideveval.api.services.ReembolsoService;
 import com.jorismar.cdtapideveval.api.utils.CartaoUtilities;
 import com.jorismar.cdtapideveval.api.utils.LancamentoUtilities;
 
@@ -41,6 +43,9 @@ public class RegisterLancamentoController {
 
     @Autowired
     private CartaoService cartaoService;
+
+    @Autowired
+    private ReembolsoService reembolsoService;
 
     @Autowired
     private RabbitMQSender amqpSender;
@@ -72,9 +77,22 @@ public class RegisterLancamentoController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        this.amqpSender.publishMessage(lancamento);
+        if (dto.getIdentificador() != null && !dto.getIdentificador().isEmpty()) {
+            Reembolso reembolso = new Reembolso();
 
-        response.setData(this.getRegisterLancamentoDto(lancamento));
+            reembolso.setIdentificador(LancamentoUtilities.generateID(dto));
+            reembolso.setDataReembolso(LocalDateTime.now());
+            reembolso.setLancamento(lancamento);
+
+            this.reembolsoService.persist(reembolso);
+
+            RegisterLancamentoDto outputDto = this.getRegisterLancamentoDto(lancamento);
+            outputDto.setIdentificador(reembolso.getIdentificador());
+            response.setData(outputDto);
+        } else {
+            this.amqpSender.publishMessage(lancamento);
+            response.setData(this.getRegisterLancamentoDto(lancamento));
+        }
 
         return ResponseEntity.ok(response);
     }
@@ -127,13 +145,13 @@ public class RegisterLancamentoController {
             if (optLancamento.isPresent()) {
                 lancamento = optLancamento.get();
 
-                // Valid payee
-                if (lancamento.getBeneficiario().equals(dto.getBeneficiario())) {
-                    // Valid condition
-                    if (lancamento.getCondicao() == CondicaoLancamentoEnum.PENDENTE) {
+                // Check if it is not refunded yet
+                if (!this.reembolsoService.findByLancamentoIdentificador(lancamento.getIdentificador()).isPresent()) {
+                    // Valid payee
+                    if (lancamento.getBeneficiario().equals(dto.getBeneficiario())) {
                         // Valid value
                         if (lancamento.getValor().equals(dto.getValor())) {
-                            lancamento.setCondicao(CondicaoLancamentoEnum.REEMBOLSADO);
+                            // Approved to refund
                             return lancamento;
                         }
                     }
@@ -154,11 +172,11 @@ public class RegisterLancamentoController {
         } while(identificador == null || identificador.isEmpty() || this.lancamentoService.findByIdentificador(identificador).isPresent());
         
         lancamento.setIdentificador(identificador);
-        lancamento.setDataLancamento(LocalDate.now());
+        lancamento.setDataLancamento(LocalDateTime.now());
         lancamento.setCartao(cartao);
         lancamento.setBeneficiario(dto.getBeneficiario());
         lancamento.setValor(dto.getValor());
-        lancamento.setCondicao(CondicaoLancamentoEnum.PENDENTE);
+        // lancamento.setCondicao(CondicaoLancamentoEnum.PENDENTE);
 
         return lancamento;
     }
