@@ -6,8 +6,10 @@ import java.util.logging.Logger;
 
 import javax.validation.Valid;
 
+import com.jorismar.cdtapideveval.api.components.RabbitMQSender;
 import com.jorismar.cdtapideveval.api.dtos.RegisterPortadorDto;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.form.Proposta;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.response.Response;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
@@ -36,6 +38,9 @@ public class RegisterPortadorController {
     @Autowired
     private CartaoService cartaoService;
 
+    @Autowired
+    private RabbitMQSender amqpSender;
+
     public RegisterPortadorController() {
 
     }
@@ -58,17 +63,21 @@ public class RegisterPortadorController {
         // Create entity by DTO
         Portador portador = getPortador(dto);
 
-        // Generate a new credit card
         Cartao cartao = null;
-
+        
         do {
+            // Generate a new credit card
             cartao = CartaoUtilities.generate(portador, dto.getSenha());
         } while (this.cartaoService.findByNumero(cartao.getNumero()).isPresent());
 
-        // Store new registers into de DB
-        this.portadorService.persist(portador);
-        this.cartaoService.persist(cartao);
+        // Generate the Proposta form to publish
+        Proposta proposta = new Proposta();
+        proposta.fill(portador, cartao);
 
+        // Publish the Proposta form in AMQP the Queue
+        this.amqpSender.publishMessage(proposta);
+
+        // Set response information
         response.setData(this.getRegisterPortadorDto(portador, cartao));
 
         return ResponseEntity.ok(response);

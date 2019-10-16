@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jorismar.cdtapideveval.api.components.RabbitMQSender;
 import com.jorismar.cdtapideveval.api.dtos.RegisterLancamentoDto;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Lancamento;
@@ -40,6 +41,9 @@ public class RegisterLancamentoController {
 
     @Autowired
     private CartaoService cartaoService;
+
+    @Autowired
+    private RabbitMQSender amqpSender;
 
     public RegisterLancamentoController() {
 
@@ -68,8 +72,7 @@ public class RegisterLancamentoController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Store new lancamento into de DB
-        this.lancamentoService.persist(lancamento);
+        this.amqpSender.publishMessage(lancamento);
 
         response.setData(this.getRegisterLancamentoDto(lancamento));
 

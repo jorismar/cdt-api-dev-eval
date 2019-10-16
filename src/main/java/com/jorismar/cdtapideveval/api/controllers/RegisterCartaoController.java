@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jorismar.cdtapideveval.api.components.RabbitMQSender;
 import com.jorismar.cdtapideveval.api.dtos.RegisterCartaoDto;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.form.Proposta;
 import com.jorismar.cdtapideveval.api.response.Response;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
 import com.jorismar.cdtapideveval.api.services.PortadorService;
@@ -38,6 +40,9 @@ public class RegisterCartaoController {
 
     @Autowired
     private CartaoService cartaoService;
+
+    @Autowired
+    private RabbitMQSender amqpSender;
 
     public RegisterCartaoController() {
 
@@ -74,14 +79,20 @@ public class RegisterCartaoController {
 
         // Generate a new credit card
         Cartao cartao = null;
+        Portador portador = optPortador.get();
 
         do {
-            cartao = CartaoUtilities.generate(optPortador.get(), dto.getSenha());
+            cartao = CartaoUtilities.generate(portador, dto.getSenha());
         } while (this.cartaoService.findByNumero(cartao.getNumero()).isPresent());
         
-        // Store new card into the DB
-        this.cartaoService.persist(cartao);
+        // Generate the Proposta form to publish
+        Proposta proposta = new Proposta();
+        proposta.fill(portador, cartao);
 
+        // Publish the Proposta form in AMQP the Queue
+        this.amqpSender.publishMessage(proposta);
+
+        // Set response information
         response.setData(this.getRegisterCartaoDto(cartao));
 
         return ResponseEntity.ok(response);
