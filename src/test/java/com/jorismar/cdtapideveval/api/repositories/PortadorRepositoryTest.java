@@ -30,7 +30,8 @@ public class PortadorRepositoryTest {
         portador.setCpf(CPF);
         portador.setNome("Jorismar Barbosa");
         portador.setEmail(EMAIL);
-        portador.setDataDeNascimento(birthDate);
+        portador.setDataNascimento(birthDate);
+        portador.setRenda(4000.0);
 
         this.portadorRepository.save(portador);
     }

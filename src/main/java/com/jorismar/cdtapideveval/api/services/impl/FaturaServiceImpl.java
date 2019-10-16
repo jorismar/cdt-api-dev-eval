@@ -12,7 +12,9 @@ import com.jorismar.cdtapideveval.api.services.FaturaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FaturaServiceImpl implements FaturaService {
     @Autowired
     private FaturaRepository repository;
@@ -27,13 +29,13 @@ public class FaturaServiceImpl implements FaturaService {
     @Override
     public List<Fatura> findByNumeroCartao(String numeroCartao) {
         logger.log(Level.FINE, "Generating list of Faturas by card number {}...", numeroCartao);
-        return this.repository.findByNumeroCartao(numeroCartao);
+        return this.repository.findByCartaoNumero(numeroCartao);
     }
 
     @Override
     public Page<Fatura> findByNumeroCartao(String numeroCartao, PageRequest pageRequest) {
         logger.log(Level.FINE, "Generating list of Faturas by card number {}...", numeroCartao);
-        return this.repository.findByNumeroCartao(numeroCartao, pageRequest);
+        return this.repository.findByCartaoNumero(numeroCartao, pageRequest);
     }
 
     @Override

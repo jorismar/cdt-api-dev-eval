@@ -17,18 +17,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jorismar.cdtapideveval.api.components.RabbitMQSender;
 import com.jorismar.cdtapideveval.api.dtos.RegisterCartaoDto;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.form.Proposta;
 import com.jorismar.cdtapideveval.api.response.Response;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
 import com.jorismar.cdtapideveval.api.services.PortadorService;
 import com.jorismar.cdtapideveval.api.utils.CartaoUtilities;
 
 @RestController
-@RequestMapping("/cdt/api/reg-card")
+@RequestMapping("/cdt/api/request/card")
 @CrossOrigin(origins = "*")
 public class RegisterCartaoController {
+    private final Double MINIMUM_INCOME = 800.0;
+
     private Logger logger = Logger.getLogger(RegisterPortadorController.class.getName());
 
     @Autowired
@@ -36,6 +40,9 @@ public class RegisterCartaoController {
 
     @Autowired
     private CartaoService cartaoService;
+
+    @Autowired
+    private RabbitMQSender amqpSender;
 
     public RegisterCartaoController() {
 
@@ -54,6 +61,10 @@ public class RegisterCartaoController {
         if(!optPortador.isPresent()) {
             result.addError(new ObjectError("Cartao", "CPF not found."));
         }
+        // Validating minimal monthly income
+        else if (optPortador.get().getRenda() < MINIMUM_INCOME) {
+            result.addError(new ObjectError("Cartao", "Request refused. Your income is not enough."));
+        }
 
         // Validating card password
         if (!CartaoUtilities.validPassword(dto.getSenha())) {
@@ -68,14 +79,20 @@ public class RegisterCartaoController {
 
         // Generate a new credit card
         Cartao cartao = null;
+        Portador portador = optPortador.get();
 
         do {
-            cartao = CartaoUtilities.generate(optPortador.get(), dto.getSenha());
+            cartao = CartaoUtilities.generate(portador, dto.getSenha());
         } while (this.cartaoService.findByNumero(cartao.getNumero()).isPresent());
         
-        // Store new card into the DB
-        this.cartaoService.persist(cartao);
+        // Generate the Proposta form to publish
+        Proposta proposta = new Proposta();
+        proposta.fill(portador, cartao);
 
+        // Publish the Proposta form in AMQP the Queue
+        this.amqpSender.publishMessage(proposta);
+
+        // Set response information
         response.setData(this.getRegisterCartaoDto(cartao));
 
         return ResponseEntity.ok(response);
@@ -87,9 +104,10 @@ public class RegisterCartaoController {
         dto.setPortadorCpf(cartao.getPortador().getCpf());
         dto.setSenha(cartao.getSenha());
         dto.setNumero(cartao.getNumero());
-        dto.setNomePortador(cartao.getNomeDoPortador());
+        dto.setNomePortador(cartao.getNomePortador());
         dto.setValidade(cartao.getValidade());
         dto.setCvc(cartao.getCvc());
+        dto.setLimite(cartao.getLimite());
 
         return dto;
     }

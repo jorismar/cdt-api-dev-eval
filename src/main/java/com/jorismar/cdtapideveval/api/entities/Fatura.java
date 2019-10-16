@@ -5,10 +5,14 @@ import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.jorismar.cdtapideveval.api.enums.CondicaoFaturaEnum;
 
 @Entity
 @Table(name = "fatura", schema = "public")
@@ -17,16 +21,14 @@ public class Fatura implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String codigoBarras;
-    private String cartaoNumero;
     private LocalDate vencimento;
-    private LocalDate periodoInicio;
-    private LocalDate periodoTermino;
-    private LocalDate pagamentoData;
     private Double valor;
+    private CondicaoFaturaEnum condicao;
+    private LocalDate dataPagamento;
     private Cartao cartao;
 
     public Fatura() {
-
+        // Empty
     }
 
     @Id
@@ -38,15 +40,6 @@ public class Fatura implements Serializable {
         this.codigoBarras = codigoBarras;
     }
 
-    @Column(name = "cartao_numero", nullable = false, insertable = false, updatable = false)
-    public String getCartaoNumero() {
-        return cartaoNumero;
-    }
-
-    public void setCartaoNumero(String cartaoNum) {
-        this.cartaoNumero = cartaoNum;
-    }
-
     @Column(name = "vencimento", nullable = false)
     public LocalDate getVencimento() {
         return vencimento;
@@ -54,33 +47,6 @@ public class Fatura implements Serializable {
 
     public void setVencimento(LocalDate vencimento) {
         this.vencimento = vencimento;
-    }
-
-    @Column(name = "periodo_inicio", nullable = false)
-    public LocalDate getPeriodoInicio() {
-        return periodoInicio;
-    }
-
-    public void setPeriodoInicio(LocalDate periodoInicio) {
-        this.periodoInicio = periodoInicio;
-    }
-
-    @Column(name = "periodo_termino", nullable = false)
-    public LocalDate getPeriodoTermino() {
-        return periodoTermino;
-    }
-
-    public void setPeriodoTermino(LocalDate periodoTermino) {
-        this.periodoTermino = periodoTermino;
-    }
-
-    @Column(name = "pagamento_data", nullable = true)
-    public LocalDate getPagamentoData() {
-        return pagamentoData;
-    }
-
-    public void setPagamentoData(LocalDate pagamentoData) {
-        this.pagamentoData = pagamentoData;
     }
 
     @Column(name = "valor", nullable = false)
@@ -92,6 +58,25 @@ public class Fatura implements Serializable {
         this.valor = valor;
     }
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condicao", nullable = false)
+    public CondicaoFaturaEnum getCondicao() {
+        return condicao;
+    }
+
+    public void setCondicao(CondicaoFaturaEnum condicao) {
+        this.condicao = condicao;
+    }
+
+    @Column(name = "data_pagamento", nullable = true)
+    public LocalDate getDataPagamento() {
+        return dataPagamento;
+    }
+
+    public void setDataPagamento(LocalDate pagamentoData) {
+        this.dataPagamento = pagamentoData;
+    }
+
     @ManyToOne(fetch = FetchType.EAGER)
     public Cartao getCartao() {
         return cartao;
@@ -99,5 +84,12 @@ public class Fatura implements Serializable {
 
     public void setCartao(Cartao cartao) {
         this.cartao = cartao;
+    }
+
+    @Override
+    public String toString() {
+        return "Fatura [codigo=" + this.codigoBarras + ", vencimento=" + this.vencimento + 
+            ", valor=" + this.valor + ", condicao=" + this.condicao.name() + 
+            ", numero_cartao=" + this.cartao.getNumero() + "]";
     }
 }

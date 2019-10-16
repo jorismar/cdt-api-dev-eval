@@ -18,6 +18,7 @@ public class Portador implements Serializable {
     private String nome;
     private String email;
     private LocalDate dataNascimento;
+    private Double renda;
 
     public Portador() { };
 
@@ -49,16 +50,26 @@ public class Portador implements Serializable {
     }
 
     @Column(name = "data_nascimento", nullable = false)
-    public LocalDate getDataDeNascimento() {
+    public LocalDate getDataNascimento() {
         return dataNascimento;
     }
 
-    public void setDataDeNascimento(LocalDate dataDeNascimento) {
+    public void setDataNascimento(LocalDate dataDeNascimento) {
         this.dataNascimento = dataDeNascimento;
+    }
+
+    @Column(name = "renda", nullable = false)
+    public Double getRenda() {
+        return renda;
+    }
+
+    public void setRenda(Double renda) {
+        this.renda = renda;
     }
 
     @Override
     public String toString() {
-        return "Portador [cpf=" + this.cpf + ", nome=" + this.nome + ", email=" + this.email + ", data_de_nascimento=" + this.dataNascimento + "]";
+        return "Portador [cpf=" + this.cpf + ", nome=" + this.nome + ", email=" + this.email + 
+            ", data_de_nascimento=" + this.dataNascimento + ", renda=" + this.renda + "]";
     }
 }

@@ -28,13 +28,13 @@ public class CartaoServiceImpl implements CartaoService {
 
     @Override
     public List<Cartao> findByCpf(String cpf) {
-        logger.log(Level.FINE, "Generating list of Carato by CPF {}...", cpf);
+        logger.log(Level.FINE, "Generating list of Cartoes by CPF {}...", cpf);
         return this.repository.findByPortadorCpf(cpf);
     }
 
     @Override
     public Page<Cartao> findByCpf(String cpf, PageRequest pageRequest) {
-        logger.log(Level.FINE, "Generating list of Carato by CPF {}...", cpf);
+        logger.log(Level.FINE, "Generating list of Cartoes by CPF {}...", cpf);
         return this.repository.findByPortadorCpf(cpf, pageRequest);
     }
 
@@ -42,5 +42,11 @@ public class CartaoServiceImpl implements CartaoService {
     public Cartao persist(Cartao cartao) {
         logger.log(Level.FINE, "Storing the Cartao '{}' in database...", cartao.getNumero());
         return this.repository.save(cartao);
+    }
+
+    @Override
+    public List<Cartao> findAll() {
+        logger.log(Level.FINE, "Generating list of all Cartoes...");
+        return this.repository.findAll();
     }
 }

@@ -6,8 +6,10 @@ import java.util.logging.Logger;
 
 import javax.validation.Valid;
 
+import com.jorismar.cdtapideveval.api.components.RabbitMQSender;
 import com.jorismar.cdtapideveval.api.dtos.RegisterPortadorDto;
 import com.jorismar.cdtapideveval.api.entities.Portador;
+import com.jorismar.cdtapideveval.api.form.Proposta;
 import com.jorismar.cdtapideveval.api.entities.Cartao;
 import com.jorismar.cdtapideveval.api.response.Response;
 import com.jorismar.cdtapideveval.api.services.CartaoService;
@@ -25,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/cdt/api/reg-client")
+@RequestMapping("/cdt/api/register")
 @CrossOrigin(origins = "*")
 public class RegisterPortadorController {
     private Logger logger = Logger.getLogger(RegisterPortadorController.class.getName());
@@ -35,6 +37,9 @@ public class RegisterPortadorController {
 
     @Autowired
     private CartaoService cartaoService;
+
+    @Autowired
+    private RabbitMQSender amqpSender;
 
     public RegisterPortadorController() {
 
@@ -58,17 +63,21 @@ public class RegisterPortadorController {
         // Create entity by DTO
         Portador portador = getPortador(dto);
 
-        // Generate a new credit card
         Cartao cartao = null;
-
+        
         do {
+            // Generate a new credit card
             cartao = CartaoUtilities.generate(portador, dto.getSenha());
         } while (this.cartaoService.findByNumero(cartao.getNumero()).isPresent());
 
-        // Store new registers into de DB
-        this.portadorService.persist(portador);
-        this.cartaoService.persist(cartao);
+        // Generate the Proposta form to publish
+        Proposta proposta = new Proposta();
+        proposta.fill(portador, cartao);
 
+        // Publish the Proposta form in AMQP the Queue
+        this.amqpSender.publishMessage(proposta);
+
+        // Set response information
         response.setData(this.getRegisterPortadorDto(portador, cartao));
 
         return ResponseEntity.ok(response);
@@ -92,7 +101,8 @@ public class RegisterPortadorController {
         portador.setCpf(dto.getCpf());
         portador.setEmail(dto.getEmail());
         portador.setNome(dto.getNome());
-        portador.setDataDeNascimento(dto.getDataNascimento());
+        portador.setDataNascimento(dto.getDataNascimento());
+        portador.setRenda(dto.getRenda());
 
         return portador;
     }
@@ -103,9 +113,10 @@ public class RegisterPortadorController {
         dto.setCpf(portador.getCpf());
         dto.setEmail(portador.getEmail());
         dto.setNome(portador.getNome());
-        dto.setDataNascimento(portador.getDataDeNascimento());
+        dto.setDataNascimento(portador.getDataNascimento());
+        dto.setRenda(portador.getRenda());
         dto.setNumeroCartao(cartao.getNumero());
-        dto.setNomeCartao(cartao.getNomeDoPortador());
+        dto.setNomeCartao(cartao.getNomePortador());
         dto.setValidadeCartao(cartao.getValidade());
         dto.setCvcCartao(cartao.getCvc());
         dto.setSenha(cartao.getSenha());

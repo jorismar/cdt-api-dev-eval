@@ -3,10 +3,11 @@ package com.jorismar.cdtapideveval.api.dtos;
 import java.time.LocalDate;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;
 
-import org.hibernate.validator.constraints.CreditCardNumber;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.br.CPF;
+import org.hibernate.validator.constraints.CreditCardNumber;
 
 public class RegisterCartaoDto {
     private String portadorCpf;
@@ -15,9 +16,10 @@ public class RegisterCartaoDto {
     private String nomePortador;
     private LocalDate validade;
     private String cvc;
+    private Double limite;
 
     public RegisterCartaoDto() {
-
+        // Empty
     }
 
     @NotEmpty(message = "The credit cart owner CPF cannot be empty.")
@@ -72,6 +74,15 @@ public class RegisterCartaoDto {
 
     public void setCvc(String cvc) {
         this.cvc = cvc;
+    }
+
+    @Positive
+    public Double getLimite() {
+        return limite;
+    }
+
+    public void setLimite(Double limite) {
+        this.limite = limite;
     }
 
     @Override
