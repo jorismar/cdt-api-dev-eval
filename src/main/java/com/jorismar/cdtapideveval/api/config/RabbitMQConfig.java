@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RabbitMQConfig {
-    public static final String TOPIC_EXCHANGE_NAME = "cdt-api-exchange";
-    public static final String ROUTINE_KEY = "cdt.api.dev.eval";
+    public static final String TOPIC_EXCHANGE_NAME = "cdt.api.dev.eval.exchange";
+    public static final String ROUTINE_KEY = "cdt.api.dev.eval.key";
 
-    static final String queueName = "register-portador";
+    static final String queueName = "cdt-api-dev-eval-queue";
 
     @Bean
     Queue queue() {
